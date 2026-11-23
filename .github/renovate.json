@@ -17,12 +17,15 @@
   "prHourlyLimit": 0,
   "minimumReleaseAge": "3 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "automerge": true,
+  "platformAutomerge": false,
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "addLabels": [
       "security"
     ],
-    "semanticCommitType": "fix"
+    "semanticCommitType": "fix",
+    "automerge": false
   },
   "pre-commit": {
     "enabled": true
@@ -103,13 +106,14 @@
       "minimumReleaseAge": "0 days"
     },
     {
-      "description": "Label major updates so they get a deliberate review.",
+      "description": "Label major updates and leave them open, so they get a deliberate review.",
       "matchUpdateTypes": [
         "major"
       ],
       "addLabels": [
         "breaking"
-      ]
+      ],
+      "automerge": false
     },
     {
       "description": "Move the toolchain pin and its build image together, since they change what is built.",
