@@ -6,46 +6,43 @@
     ":configMigration",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
-  "timezone": "Europe/Berlin",
-  "labels": ["renovate"],
+  "labels": [
+    "dependencies"
+  ],
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
+  "separateMinorPatch": true,
   "pinDigests": true,
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
   "minimumReleaseAge": "3 days",
-  "prBodyColumns": ["Package", "Type", "Update", "Change", "Age"],
-  "prBodyDefinitions": {
-    "Age": "{{#if newVersion}}{{{newVersionAgeInDays}}} days{{/if}}"
-  },
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "automerge": true,
+  "platformAutomerge": false,
+  "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
-    "addLabels": ["security"]
+    "addLabels": [
+      "security"
+    ],
+    "semanticCommitType": "fix",
+    "automerge": false
   },
   "pre-commit": {
     "enabled": true
   },
-  "packageRules": [
-    {
-      "description": "Commit tooling bumps with the chore type.",
-      "matchManagers": ["custom.regex", "dockerfile", "github-actions", "pre-commit"],
-      "semanticCommitType": "chore"
-    },
-    {
-      "description": "Group GitHub Action and runner updates into a single pull request.",
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions"
-    },
-    {
-      "description": "Move the toolchain pin and its build image together; they change what is built.",
-      "matchDepNames": ["rust"],
-      "groupName": "Rust toolchain",
-      "semanticCommitType": "build"
-    },
-    {
-      "description": "Label major updates so they get a deliberate review.",
-      "matchUpdateTypes": ["major"],
-      "addLabels": ["breaking"]
-    }
-  ],
   "customManagers": [
+    {
+      "description": "Node, pinned in the workflow that lints commit messages.",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/commitlint\\.yaml$/"
+      ],
+      "matchStrings": [
+        "node-version: (?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "node",
+      "datasourceTemplate": "node-version"
+    },
     {
       "customType": "regex",
       "description": "Track tool images pinned as name:tag@digest in scripts, hooks and workflows.",
@@ -62,10 +59,75 @@
     {
       "customType": "regex",
       "description": "Track the pre-commit version CI runs.",
-      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
-      "matchStrings": ["pre-commit==(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "managerFilePatterns": [
+        "/^\\.github/workflows/[^/]+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "pre-commit==(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "pre-commit"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Except the pipeline, which no user ever runs.",
+      "matchFileNames": [
+        ".github/**"
+      ],
+      "semanticCommitType": "ci"
+    },
+    {
+      "description": "Bundle the digest refreshes that ship, which carry no version to review.",
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "groupName": "digests"
+    },
+    {
+      "description": "The same for the pipeline, kept apart so each group carries one commit type.",
+      "matchFileNames": [
+        ".github/**"
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "groupName": "workflow digests"
+    },
+    {
+      "description": "A digest names a build, not a release, so it has no date an age check could measure.",
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "minimumReleaseAge": "0 days"
+    },
+    {
+      "description": "Label major updates and leave them open, so they get a deliberate review.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "addLabels": [
+        "breaking"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Move the toolchain pin and its build image together, since they change what is built.",
+      "matchDepNames": [
+        "rust"
+      ],
+      "groupName": "Rust toolchain"
+    },
+    {
+      "description": "Renovate updates itself through the renovate-version line, which the github-actions manager reads as an image but which takes no digest.",
+      "matchPackageNames": [
+        "ghcr.io/renovatebot/renovate"
+      ],
+      "pinDigests": false
     }
   ]
 }
