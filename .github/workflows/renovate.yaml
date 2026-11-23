@@ -1,0 +1,65 @@
+name: Update dependencies
+
+# Opens the dependency pull requests, daily and on demand.
+on:
+  schedule:
+    # 16:00 UTC, which is 17:00 in Berlin in winter and 18:00 in summer.
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        default: "info"
+        type: choice
+        options: [debug, info, warn]
+
+# One run at a time, so each pull request opens once.
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    # The app token carries the rights, so the built-in token stays empty.
+    permissions: {}
+    steps:
+      # Act as the renovate app, so its pull requests start the checks.
+      - name: App token
+        id: app-token
+        # Pinned to a commit: a tag can move, a commit stays fixed.
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: ${{ vars.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          # The dependency dashboard is an issue, and labels go through the same API.
+          permission-issues: write
+          # Lets renovate update a pinned action in .github/workflows.
+          permission-workflows: write
+          # Dependabot alerts, which renovate reads to recognise a security update.
+          permission-vulnerability-alerts: read
+          # Renovate reads the state of a branch, and writes a status of its own
+          # that says whether the release age is met.
+          permission-statuses: write
+          permission-checks: read
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The job leaves the built-in token empty, so checkout needs the app token.
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
+      # Run renovate against this repository alone, at the version pinned here.
+      - name: Renovate
+        uses: renovatebot/github-action@acdd6bda8b035c99ce59d5675816af2aa65a1774 # v46.3.14
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          renovate-version: 44.257.9
+        env:
+          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_AUTODISCOVER: "false"
+          RENOVATE_REPOSITORIES: ${{ github.repository }}

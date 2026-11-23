@@ -66,4 +66,4 @@ The `videos` output lists the recorded files, one per line. The action runs on `
 
 Overlays are set in [Inter](https://github.com/rsms/inter) (SIL Open Font License 1.1) with icons from [Lucide](https://github.com/lucide-icons/lucide) (ISC); both ship inside the binary, their licenses in `assets/fonts/`, where `subset.sh` cuts the icons taperec uses from a Lucide release.
 
-Contributing: run `pre-commit install`, work on a branch, and write commits as `type(scope): subject` with a scope from `.commitlintrc.json`.
+Contributing: run `pre-commit install`, work on a branch, and write commits as `type(scope): subject` with a scope from `.github/tools/commitlint.json`.
