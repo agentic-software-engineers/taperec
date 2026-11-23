@@ -12,7 +12,6 @@
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "separateMinorPatch": true,
-  "pinDigests": true,
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
   "minimumReleaseAge": "3 days",
@@ -70,6 +69,13 @@
     }
   ],
   "packageRules": [
+    {
+      "description": "Pin every image to its digest, while actions take theirs from the pinGitHubActionDigests preset.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "pinDigests": true
+    },
     {
       "description": "Except the pipeline, which no user ever runs.",
       "matchFileNames": [
